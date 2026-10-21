@@ -4,6 +4,10 @@
 
 It runs entirely in the browser: the documents are never uploaded anywhere.
 
+### ▶ [Try it live: lantern-blue-psi.vercel.app](https://lantern-blue-psi.vercel.app)
+
+Or jump straight to an answer: [*"My father passed away. How many days off can I take?"*](https://lantern-blue-psi.vercel.app/?q=My%20father%20passed%20away.%20How%20many%20days%20off%20can%20I%20take%3F) · [*"Can I bring my dog to the office?"*](https://lantern-blue-psi.vercel.app/?q=Can%20I%20bring%20my%20dog%20to%20the%20office%3F)
+
 ![Lantern answering a question: the answer sentence in the chat, and the page open on the right with the sentence highlighted](docs/answer.png)
 
 ## Why I built it
