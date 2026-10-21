@@ -1,0 +1,13 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# experiment outputs and full-size ONNX files (rebuilt by the scripts)
+/data/
+
+# editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

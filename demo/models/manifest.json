@@ -1,0 +1,17 @@
+{
+ "embedder": {
+  "files": [
+   "embedder/onnx/model_quantized.onnx"
+  ],
+  "bytes": 33844104
+ },
+ "reranker": {
+  "files": [
+   "reranker/onnx/model_quantized.onnx.part0",
+   "reranker/onnx/model_quantized.onnx.part1",
+   "reranker/onnx/model_quantized.onnx.part2",
+   "reranker/onnx/model_quantized.onnx.part3"
+  ],
+  "bytes": 278912070
+ }
+}

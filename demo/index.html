@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lantern · Ask your documents</title>
+<meta name="description" content="Ask questions about your PDFs in plain words. Lantern finds the exact sentence and opens the page, privately, in your browser.">
+<meta name="theme-color" content="#0A0C11">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Crect width='34' height='34' rx='9' fill='%230A0C11'/%3E%3Cpath d='M11 12h12l-1.5 13h-9z' fill='none' stroke='%23F2B544' stroke-width='2'/%3E%3Cellipse cx='17' cy='19.5' rx='2.4' ry='3.6' fill='%23F2B544'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet" crossorigin>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js" crossorigin></script>
+</head>
+<body>
+<div class="app" id="app" data-tab="chat">
+
+  <!-- library -->
+  <aside class="side" aria-label="Library">
+    <div class="brand">
+      <svg class="lantern" viewBox="0 0 34 34" aria-hidden="true">
+        <path d="M13 7.5h8M17 4v3.5" stroke="#A39C8F" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M10.5 11h13l-1.6 15.5h-9.8z" fill="rgba(242,181,68,.08)" stroke="#F2B544" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M11 29h12" stroke="#A39C8F" stroke-width="1.6" stroke-linecap="round"/>
+        <ellipse class="flame" cx="17" cy="19.5" rx="2.6" ry="4" fill="#FFD27A"/>
+      </svg>
+      <div><b>Lantern</b><small>ask your documents</small></div>
+    </div>
+    <div class="docs" id="docs"></div>
+    <button class="add" id="addBtn" type="button">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9 14h6"/></svg>
+      <span>Add your PDFs<small>Click or drop files · they never leave your device</small></span>
+    </button>
+    <input type="file" id="file" accept="application/pdf,.pdf" multiple hidden>
+    <div class="privacy">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+      <span><b>Private by design.</b> The AI runs in your browser; your documents are never uploaded.</span>
+    </div>
+  </aside>
+
+  <!-- chat -->
+  <main class="chat">
+    <header>
+      <div class="ttl"><h1 id="chatTitle">Meridian Freight Co.</h1><p id="chatSub">Sample documents of a fictional company</p></div>
+      <div class="hbtns">
+        <button class="hbtn" id="howBtn" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.3a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.2-2.5 3.8M12 17.2v.1"/></svg><span>How it works</span></button>
+        <button class="hbtn" id="newBtn" type="button" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>New chat</span></button>
+      </div>
+    </header>
+    <div class="thread" id="thread" aria-live="polite">
+      <section class="welcome" id="welcome">
+        <span class="eyebrow"><i></i>Live demo · try it with the sample documents</span>
+        <h2>Ask your documents.<br><em>Get the exact page.</em></h2>
+        <p class="intro">Lantern reads a company's handbook, IT policy and customer contract. Ask anything in plain words: it points to the sentence that answers you and opens the page. If the answer isn't there, it says so.</p>
+        <ol class="how">
+          <li><b>1</b><span>Ask in your own words</span></li>
+          <li><b>2</b><span>It finds the exact sentence</span></li>
+          <li><b>3</b><span>The page opens, lit up</span></li>
+        </ol>
+        <div class="sugg-head"><span>Try one of these</span><span class="dim">one click</span></div>
+        <div class="sugg" id="sugg"></div>
+        <button class="owncta" type="button" id="ownCta">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9 14h6"/></svg>
+          <span><b>Or try it on your own PDF</b>Contracts, manuals, policies… read on your device in seconds.</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </section>
+    </div>
+    <div class="composer">
+      <div class="loadbar" id="loadbar" role="status" aria-live="polite">
+        <div class="lb-row"><span class="lb-t"><span class="spin" aria-hidden="true"></span><b id="lbTitle">Preparing the AI on your device</b></span><span id="lbMeta">0%</span></div>
+        <div class="meter"><i id="meter"></i></div>
+        <span class="lb-note" id="lbNote">One-time download. You can already type your question; it will be answered as soon as this finishes.</span>
+      </div>
+      <form class="box" id="form">
+        <label class="sr" for="input">Your question</label>
+        <textarea id="input" rows="1" placeholder="Ask anything about these documents…" autocomplete="off"></textarea>
+        <button class="send" id="send" type="submit" aria-label="Ask" disabled>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        </button>
+      </form>
+      <div class="under">
+        <div class="mode" role="radiogroup" aria-label="Answer mode">
+          <button type="button" role="radio" data-mode="quote" aria-checked="true" title="Lantern quotes the exact sentence. Free, runs on your device.">Quote<small>free</small></button>
+          <button type="button" role="radio" data-mode="claude" aria-checked="false" title="Claude also writes a full answer from the same sources. Needs your Claude API key.">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg>Claude<small>your key</small></button>
+        </div>
+        <span class="kbd"><kbd>Enter</kbd> to ask · <kbd>/</kbd> to type</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- page viewer -->
+  <section class="view" aria-label="Document page">
+    <header>
+      <div class="t"><b id="viewTitle">No page open</b><span id="viewPage">The answer's page will open here</span></div>
+      <div class="nav">
+        <button class="icon" id="zoomOut" aria-label="Zoom out" disabled><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></button>
+        <button class="icon wide" id="zoomFit" aria-label="Fit to width" disabled>Fit</button>
+        <button class="icon" id="zoomIn" aria-label="Zoom in" disabled><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
+        <span class="sep" aria-hidden="true"></span>
+        <button class="icon" id="prev" aria-label="Previous page" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <button class="icon" id="next" aria-label="Next page" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+      </div>
+    </header>
+    <div class="pages" id="pages">
+      <div class="blank">
+        <div class="ghostpage" aria-hidden="true"><i></i><i></i><i class="lit"></i><i></i><i></i><i></i></div>
+        <b>The answer lights up here</b>
+        Ask a question and Lantern opens the right page, with the sentence highlighted.
+      </div>
+    </div>
+  </section>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button role="tab" data-tab="library" aria-selected="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>Library</button>
+    <button role="tab" data-tab="chat" aria-selected="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Ask</button>
+    <button role="tab" data-tab="page" aria-selected="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 3h9l5 5v13H6z"/><path d="M9 13h8M9 17h5"/></svg>Page<span class="badge" id="tabs-badge" hidden></span></button>
+  </nav>
+</div>
+
+<dialog id="keyDialog">
+  <form method="dialog">
+    <h3>Let Claude write the answer</h3>
+    <p>Lantern already answers for free, on your device. With your own Claude API key, Claude also writes a complete answer from the same sources, with citations, and is better at saying when the documents don't cover a question.</p>
+    <ul>
+      <li>Your key stays in this browser tab and is forgotten when you close it.</li>
+      <li>Only the question and the 5 best passages are sent, directly to Anthropic.</li>
+    </ul>
+    <label class="sr" for="keyInput">Claude API key</label>
+    <input id="keyInput" type="password" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
+    <div class="row">
+      <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get a key</a>
+      <button class="btn ghost" value="cancel">Cancel</button>
+      <button class="btn primary" value="ok">Use this key</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="howDialog" class="wide">
+  <form method="dialog">
+    <h3>How Lantern answers</h3>
+    <p>Three steps, all running in your browser. Nothing is uploaded.</p>
+    <ol class="pipeline">
+      <li><b>Search by meaning</b><span>Every passage of your documents is turned into 384 numbers that capture its meaning (BGE-small). Your question too. The closest passages win, so "my father passed away" finds "bereavement leave", with no shared words.</span></li>
+      <li><b>Read sentence by sentence</b><span>A second model (bge-reranker-base) reads your question together with each sentence of the 4 best passages, and scores how well it answers.</span></li>
+      <li><b>Point, or admit it</b><span>The best sentence is shown and lit up on its page. If its score is too low, Lantern says it couldn't find the answer, instead of making one up.</span></li>
+    </ol>
+    <h4>Tested on 66 questions with known answers</h4>
+    <div class="stats">
+      <div><b>100%</b><span>right page among the 5 search results</span></div>
+      <div><b>91%</b><span>of "Found it" answers were right</span></div>
+      <div><b>0.6 s</b><span>typical answer time, on a laptop</span></div>
+    </div>
+    <p class="fine">The test documents and questions were written for this demo, so treat the numbers as a guide. Lantern can still pick the wrong sentence: the page it opens lets you check in one click.</p>
+    <div class="row"><button class="btn primary" value="ok">Got it</button></div>
+  </form>
+</dialog>
+
+<div class="dropzone" id="dropzone"><div>Drop your PDFs<small>They're read on this device, nothing is uploaded.</small></div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

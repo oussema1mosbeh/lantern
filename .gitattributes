@@ -1,0 +1,4 @@
+# model and tokenizer files must stay byte-for-byte identical
+demo/models/** binary
+demo/data/** binary
+*.pdf binary

@@ -1,0 +1,21 @@
+@page {
+  size: Letter;
+  margin: 22mm 22mm 24mm;
+  @bottom-left { content: "Meridian Freight Co. · " string(doctitle); font: 8pt "Segoe UI", Arial, sans-serif; color: #888; }
+  @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 8pt "Segoe UI", Arial, sans-serif; color: #888; }
+}
+@page :first { @bottom-left { content: "Fictional company created for a software demo"; font: 8pt "Segoe UI", Arial, sans-serif; color: #aaa; } }
+
+body { font: 10.5pt/1.5 Georgia, "Times New Roman", serif; color: #1d1d1d; }
+h1 { string-set: doctitle content(); font: 600 24pt/1.2 "Segoe UI", Arial, sans-serif; margin: 0 0 4pt; color: #0f2a44; }
+.meta { font: 9.5pt "Segoe UI", Arial, sans-serif; color: #666; margin-bottom: 18pt; border-bottom: 1.5pt solid #0f2a44; padding-bottom: 10pt; }
+h2 { font: 600 14pt "Segoe UI", Arial, sans-serif; color: #0f2a44; margin: 20pt 0 6pt; break-after: avoid; }
+h3 { font: 600 11pt "Segoe UI", Arial, sans-serif; margin: 12pt 0 4pt; break-after: avoid; }
+p { margin: 0 0 7pt; text-align: justify; }
+ul, ol { margin: 0 0 8pt; padding-left: 18pt; }
+li { margin-bottom: 3pt; }
+table { border-collapse: collapse; width: 100%; margin: 6pt 0 10pt; font: 9.5pt/1.4 "Segoe UI", Arial, sans-serif; break-inside: avoid; }
+th, td { border: .75pt solid #c8cfd8; padding: 4pt 7pt; text-align: left; vertical-align: top; }
+th { background: #eef2f6; }
+.note { border-left: 3pt solid #0f2a44; background: #f4f6f9; padding: 6pt 10pt; margin: 8pt 0; font-size: 10pt; }
+.chapter { break-before: page; }
