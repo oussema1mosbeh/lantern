@@ -78,7 +78,7 @@ The browser version gives exactly the same results as the Python version on all 
 - **It quotes; it doesn't reason.** A question whose answer is spread over several sentences, or needs a calculation, gets the most relevant sentence, not a combined answer. That's what Claude mode is for.
 - **It can still be fooled by a shared word.** *"When is the annual bonus paid?"* finds the *referral* bonus. The page link makes this easy to spot.
 - **The test set is small and I wrote it myself**, so treat the numbers as a guide, not a guarantee.
-- **The first visit downloads about 315 MB of AI models**, with a progress bar. Later visits start instantly.
+- **The AI models are about 330 MB.** Lantern never downloads them on its own: it asks first, shows the size, and lets the visitor say "not now" (handy on mobile data). After that one download they're kept in the browser, so later visits start instantly without asking.
 - **Scanned PDFs** (images without text) can't be read, and uploads are capped at 300 pages.
 
 ## Try it on your phone

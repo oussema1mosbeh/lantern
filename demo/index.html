@@ -68,10 +68,14 @@
       </section>
     </div>
     <div class="composer">
-      <div class="loadbar" id="loadbar" role="status" aria-live="polite">
-        <div class="lb-row"><span class="lb-t"><span class="spin" aria-hidden="true"></span><b id="lbTitle">Preparing the AI on your device</b></span><span id="lbMeta">0%</span></div>
+      <div class="loadbar ask" id="loadbar" role="status" aria-live="polite">
+        <div class="lb-row"><span class="lb-t"><span class="spin" aria-hidden="true"></span><b id="lbTitle">Download the AI to start</b></span><span id="lbMeta">about 330 MB · once</span></div>
         <div class="meter"><i id="meter"></i></div>
-        <span class="lb-note" id="lbNote">One-time download. You can already type your question; it will be answered as soon as this finishes.</span>
+        <span class="lb-note" id="lbNote">Lantern runs entirely on your device, so it needs its AI models once. After that it starts instantly, even offline. On mobile data? You may prefer Wi-Fi.</span>
+        <div class="lb-acts">
+          <button class="btn primary" type="button" data-consent>Download the AI (330 MB)</button>
+          <button class="btn ghost" type="button" id="notNow">Not now</button>
+        </div>
       </div>
       <form class="box" id="form">
         <label class="sr" for="input">Your question</label>

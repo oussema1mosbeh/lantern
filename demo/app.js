@@ -17,30 +17,76 @@ const pdfCache = new Map();
 let busy = Promise.resolve();                       // the models answer one request at a time
 const queue = fn => (busy = busy.then(fn, fn));
 
-// ---------- the AI engine loads in the background, with an honest progress bar ----------
+// ---------- the AI models: downloaded only after the visitor agrees ----------
+// First visit: ask (about 330 MB). Later visits: the models are in the browser cache,
+// so they load from this device without asking, since nothing is downloaded.
 let progress = { loaded: 0, total: 1 };
-const t0 = performance.now();
-const ready = loadModels(p => {
-  progress = p;
-  const pct = Math.round(100 * p.loaded / p.total);
-  $("meter").style.width = pct + "%";
-  const secs = (performance.now() - t0) / 1000, rate = p.loaded / Math.max(secs, .1);
-  const left = rate > 0 ? Math.ceil((p.total - p.loaded) / rate) : 0;
-  $("lbMeta").textContent = p.ready ? "" : `${pct}% · ${mb(p.loaded)} of ${mb(p.total)} MB${pct > 3 && left > 2 ? ` · about ${left > 90 ? Math.ceil(left / 60) + " min" : left + " s"} left` : ""}`;
-  document.querySelectorAll(".waitpct").forEach(e => e.textContent = pct + "%");
-  if (p.ready) {
-    $("loadbar").classList.add("done");
-    $("lbTitle").textContent = "The AI is ready";
-    $("lbNote").textContent = "Next visits start instantly.";
-    setTimeout(() => $("loadbar").classList.add("gone"), 1800);
-  }
-}).catch(err => {
-  console.error(err);
-  $("loadbar").classList.add("err");
-  $("lbTitle").textContent = "The AI couldn't load";
-  $("lbNote").innerHTML = `${esc(err.message)}. <button class="linkbtn" onclick="location.reload()">Try again</button>`;
-  throw err;
-});
+let modelsReady = null;                             // the loading promise, once started
+let waiting = [];                                   // questions and uploads waiting for the visitor's OK
+let t0 = 0;
+
+function startModels({ fromCache = false } = {}) {
+  if (modelsReady) return modelsReady;
+  t0 = performance.now();
+  const bar = $("loadbar");
+  bar.classList.remove("ask", "mini", "err");
+  $("lbTitle").textContent = fromCache ? "Loading the AI from this device" : "Downloading the AI";
+  $("lbMeta").textContent = "0%";
+  $("lbNote").textContent = fromCache ? "No download needed: it was saved on your last visit."
+    : "One time only. You can already type your question; it will be answered as soon as this finishes.";
+  document.querySelectorAll(".consent").forEach(c => c.remove());
+  document.querySelectorAll(".wait .waittxt").forEach(e => e.textContent = "Preparing the AI, one time only");
+  modelsReady = loadModels(p => {
+    progress = p;
+    const pct = Math.round(100 * p.loaded / p.total);
+    $("meter").style.width = pct + "%";
+    const secs = (performance.now() - t0) / 1000, rate = p.loaded / Math.max(secs, .1);
+    const left = rate > 0 ? Math.ceil((p.total - p.loaded) / rate) : 0;
+    $("lbMeta").textContent = p.ready ? "" : `${pct}% · ${mb(p.loaded)} of ${mb(p.total)} MB${pct > 3 && left > 2 ? ` · about ${left > 90 ? Math.ceil(left / 60) + " min" : left + " s"} left` : ""}`;
+    document.querySelectorAll(".waitpct").forEach(e => e.textContent = ` (${pct}%)`);
+    if (p.ready) {
+      bar.classList.add("done");
+      $("lbTitle").textContent = "The AI is ready";
+      $("lbNote").textContent = "It's saved on this device: next visits start instantly.";
+      setTimeout(() => bar.classList.add("gone"), 1800);
+    }
+  }).catch(err => {
+    console.error(err);
+    modelsReady = null;
+    bar.classList.add("err", "ask");
+    $("lbTitle").textContent = "The AI couldn't load";
+    $("lbMeta").textContent = "";
+    $("lbNote").textContent = `${err.message}. Check your connection and try again.`;
+    throw err;
+  });
+  const w = waiting; waiting = [];
+  w.forEach(fn => fn());
+  return modelsReady;
+}
+
+// resolves once the models are loaded; waits for the visitor's OK if the download hasn't started
+const whenReady = () => modelsReady || new Promise(res => waiting.push(res)).then(() => modelsReady);
+
+function askForModels() {
+  const bar = $("loadbar");
+  if (modelsReady) return;
+  bar.classList.remove("mini", "gone");
+  bar.classList.add("ask", "nudge");
+  setTimeout(() => bar.classList.remove("nudge"), 900);
+}
+
+document.addEventListener("click", e => { if (e.target.closest("[data-consent]")) startModels(); });
+$("notNow").onclick = () => { $("loadbar").classList.add("mini"); };
+
+async function modelsCached() {
+  try {
+    const m = await (await fetch("models/manifest.json")).json();
+    const cache = await caches.open("lantern-models-v1");
+    for (const kind of ["embedder", "reranker"]) for (const f of m[kind].files) if (!await cache.match(`models/${f}`)) return false;
+    return true;
+  } catch { return false; }                         // private mode or blocked storage: ask
+}
+modelsCached().then(cached => { if (cached) startModels({ fromCache: true }); });
 
 // ---------- the sample library ----------
 let welcomeHtml = "";
@@ -125,8 +171,12 @@ async function addFiles(files) {
       if (pdf.numPages > 300) throw new Error(`${f.name} has ${pdf.numPages} pages; the demo reads up to 300`);
       const { chunks } = await chunkPdf(pdf, doc.id, (p, n) => { doc.progress = .3 * p / n; renderDocs(); });
       if (!chunks.length) throw new Error(`No text found in ${f.name}. Is it a scanned image?`);
-      if (!progress.embedderReady && !progress.ready) { doc.status = "Waiting for the AI…"; renderDocs(); }
-      await ready.catch(() => {});
+      if (!progress.ready) {
+        doc.status = modelsReady ? "Waiting for the AI…" : "Needs the AI download";
+        renderDocs();
+        if (!modelsReady) { askForModels(); toast("Download the AI to read your PDF"); if (isPhone()) setTab("chat"); }
+      }
+      try { await whenReady(); } catch { throw new Error(`The AI couldn't load, so “${doc.title}” wasn't read`); }
       doc.status = "Understanding…"; renderDocs();
       const vecs = [];
       for (let i = 0; i < chunks.length; i += 8) {
@@ -184,13 +234,18 @@ function submit(q) {
   thread.insertAdjacentHTML("beforeend", `<div class="q"><div>${esc(q)}</div></div>`);
   const a = document.createElement("div");
   a.className = "a";
-  a.innerHTML = `<ol class="steps">${progress.ready ? "" : `<li class="on wait">Preparing the AI, one time only (<span class="waitpct">${Math.round(100 * progress.loaded / progress.total)}%</span>)</li>`}
+  const pct = Math.round(100 * progress.loaded / progress.total);
+  a.innerHTML = `${modelsReady ? "" : `<div class="consent">
+      <p><b>Lantern needs its AI to answer.</b> It runs on your device, so it downloads about 330 MB once, then answers instantly, even on your next visits.</p>
+      <button class="btn primary" type="button" data-consent>Download and answer</button>
+    </div>`}
+    <ol class="steps">${progress.ready ? "" : `<li class="on wait"><span class="waittxt">${modelsReady ? "Preparing the AI, one time only" : "Waiting for your OK to download the AI"}</span><span class="waitpct">${modelsReady ? ` (${pct}%)` : ""}</span></li>`}
     ${STEPS.map(([k, t]) => `<li data-step="${k}">${t}</li>`).join("")}</ol>`;
   thread.append(a);
   a.scrollIntoView({ block: "end", behavior: "smooth" });
   queue(async () => {
     try {
-      await ready;
+      await whenReady();
       a.querySelector(".wait")?.classList.replace("on", "done");
       const res = await ask(index, q, levels, stage => {
         let past = true;
