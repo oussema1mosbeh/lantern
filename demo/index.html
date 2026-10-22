@@ -17,7 +17,8 @@
 <div class="app" id="app" data-tab="chat">
 
   <!-- library -->
-  <aside class="side" aria-label="Library">
+  <div class="scrim" id="scrim" aria-hidden="true"></div>
+  <aside class="side" id="side" aria-label="Library">
     <div class="brand">
       <svg class="lantern" viewBox="0 0 34 34" aria-hidden="true">
         <path d="M13 7.5h8M17 4v3.5" stroke="#A39C8F" stroke-width="1.6" stroke-linecap="round"/>
@@ -42,6 +43,7 @@
   <!-- chat -->
   <main class="chat">
     <header>
+      <button class="hbtn libbtn" id="libBtn" type="button" aria-controls="side" aria-expanded="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg><span>Library</span></button>
       <div class="ttl"><h1 id="chatTitle">Meridian Freight Co.</h1><p id="chatSub">Sample documents of a fictional company</p></div>
       <div class="hbtns">
         <button class="hbtn" id="howBtn" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.3a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.2-2.5 3.8M12 17.2v.1"/></svg><span>How it works</span></button>

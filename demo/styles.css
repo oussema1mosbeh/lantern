@@ -21,7 +21,13 @@ svg { flex: none; }
 [hidden] { display: none !important; }
 kbd { font: 500 10.5px var(--mono); border: 1px solid var(--line2); border-bottom-width: 2px; border-radius: 5px; padding: 1px 5px; color: var(--muted); }
 
-.app { display: grid; grid-template-columns: 272px minmax(0, 1fr) clamp(340px, 36vw, 680px); height: 100vh; height: 100dvh; }
+/* --z scales the whole interface on big screens; screen-based units are divided by it so the app still fits */
+:root { --z: 1; }
+@media (min-width: 1800px) { :root { --z: 1.1; } }
+@media (min-width: 2200px) { :root { --z: 1.25; } }
+@media (min-width: 2800px) { :root { --z: 1.5; } }
+body { zoom: var(--z); }
+.app { display: grid; grid-template-columns: 272px minmax(0, 1fr) clamp(340px, calc(38vw / var(--z)), 820px); height: 100vh; height: calc(100dvh / var(--z)); }
 
 /* ---------- library (left) ---------- */
 .side { background: var(--bg2); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; position: relative; overflow: hidden; }
@@ -69,7 +75,7 @@ kbd { font: 500 10.5px var(--mono); border: 1px solid var(--line2); border-botto
 .chat > header { padding: 16px 28px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .ttl { min-width: 0; }
 .chat h1 { font: 500 17px/1.2 var(--serif); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.chat header p { margin: 3px 0 0; font-size: 12.5px; color: var(--dim); }
+.chat header p { margin: 3px 0 0; font-size: 12.5px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hbtns { display: flex; gap: 6px; }
 .hbtn { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); background: var(--panel); border-radius: 9px; padding: 7px 11px; font-size: 13px; color: var(--muted); white-space: nowrap; transition: border-color .2s, color .2s; }
 .hbtn:hover:not(:disabled) { color: var(--text); border-color: var(--line2); }
@@ -246,7 +252,7 @@ kbd { font: 500 10.5px var(--mono); border: 1px solid var(--line2); border-botto
 .ghostpage i.lit { background: var(--amber); box-shadow: 0 0 14px rgba(242, 181, 68, .7); animation: pulse 2.2s ease-in-out infinite; }
 
 /* ---------- dialogs and toasts ---------- */
-dialog { margin: auto; border: 1px solid var(--line2); border-radius: 18px; background: var(--panel); color: var(--text); padding: 26px; width: min(460px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); box-shadow: 0 40px 120px -20px rgba(0, 0, 0, .9); }
+dialog { margin: auto; border: 1px solid var(--line2); border-radius: 18px; background: var(--panel); color: var(--text); padding: 26px; width: min(460px, calc(100vw / var(--z) - 32px)); max-height: calc(100dvh / var(--z) - 32px); box-shadow: 0 40px 120px -20px rgba(0, 0, 0, .9); }
 dialog.wide { width: min(560px, calc(100vw - 32px)); }
 dialog::backdrop { background: rgba(5, 6, 9, .72); backdrop-filter: blur(4px); }
 dialog h3 { font: 500 22px/1.2 var(--serif); margin: 0 0 8px; }
@@ -277,8 +283,33 @@ dialog ul { margin: 0 0 16px; padding-left: 18px; color: var(--muted); font-size
 .tabs { display: none; }
 
 /* ---------- tablet and phone ---------- */
-@media (max-width: 1280px) { .app { grid-template-columns: 236px minmax(0, 1fr) clamp(320px, 34vw, 680px); } }
-@media (max-width: 1100px) { .hbtn span { display: none; } }
+@media (max-width: 1280px) { .app { grid-template-columns: 236px minmax(0, 1fr) clamp(320px, 36vw, 680px); } }
+/* medium screens: the library becomes a drawer so the chat and the page share the width */
+.libbtn, .scrim { display: none; }
+@media (min-width: 901px) and (max-width: 1180px) {
+  .app { grid-template-columns: minmax(0, 1fr) clamp(340px, 44vw, 560px); }
+  .side { position: fixed; inset: 0 auto 0 0; width: 300px; z-index: 40; transform: translateX(-102%); transition: transform .32s var(--ease); box-shadow: 30px 0 90px rgba(0, 0, 0, .65); }
+  .app.libopen .side { transform: none; }
+  .scrim { display: block; position: fixed; inset: 0; z-index: 39; background: rgba(5, 6, 9, .6); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .3s; }
+  .app.libopen .scrim { opacity: 1; pointer-events: auto; }
+  .libbtn { display: inline-flex; flex: none; }
+  .chat > header { justify-content: flex-start; }
+  .chat > header .hbtns { margin-left: auto; }
+}
+/* short screens: tighter spacing so the question box and the answer stay in view */
+@media (max-height: 760px) and (min-width: 901px) {
+  .chat > header, .view header { padding-top: 10px; padding-bottom: 10px; }
+  .brand { padding: 16px 22px 12px; }
+  .welcome { padding-top: 0; }
+  .welcome h2 { font-size: 30px; margin-bottom: 10px; }
+  .intro { margin-bottom: 16px; }
+  .how { margin-bottom: 18px; }
+  .thread { padding-top: 18px; }
+  .loadbar.ask .lb-note { display: none; }
+  .loadbar { padding: 10px 12px; }
+  .pages { padding: 14px; }
+  .privacy { display: none; }
+}
 @media (max-width: 900px) {
   .app { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
   .side, .chat, .view { grid-row: 1; grid-column: 1; min-height: 0; }

@@ -478,7 +478,9 @@ async function renderPage(keepScroll = false) {
 
   const box = $("pages"), fit = Math.min(box.clientWidth - 44, 900);
   const vp = page.getViewport({ scale: viewer.zoom * fit / page.getViewport({ scale: 1 }).width });
-  const dpr = Math.min(devicePixelRatio || 1, 2.5);
+  // on big screens the whole interface is scaled up with CSS zoom; render the page with more pixels to match
+  const uiZoom = parseFloat(getComputedStyle(document.body).zoom) || 1;
+  const dpr = Math.min((devicePixelRatio || 1) * uiZoom, 3);
   const canvas = document.createElement("canvas");
   canvas.width = Math.floor(vp.width * dpr); canvas.height = Math.floor(vp.height * dpr);
   canvas.style.width = vp.width + "px"; canvas.style.height = vp.height + "px";
@@ -540,6 +542,18 @@ async function highlightRects(page, vp, targets) {
   return out;
 }
 addEventListener("resize", () => { clearTimeout(window._rz); window._rz = setTimeout(() => viewer.id && renderPage(true), 200); });
+
+// ---------- the library drawer on medium screens ----------
+const drawerMode = () => matchMedia("(min-width: 901px) and (max-width: 1180px)").matches;
+function setDrawer(open) {
+  $("app").classList.toggle("libopen", open);
+  $("libBtn").setAttribute("aria-expanded", String(open));
+}
+$("libBtn").onclick = () => setDrawer(!$("app").classList.contains("libopen"));
+$("scrim").onclick = () => setDrawer(false);
+addEventListener("keydown", e => { if (e.key === "Escape" && $("app").classList.contains("libopen")) setDrawer(false); });
+$("docs").addEventListener("click", e => { if (drawerMode() && e.target.closest(".doc") && !e.target.closest("[data-remove]")) setDrawer(false); });
+matchMedia("(min-width: 901px) and (max-width: 1180px)").addEventListener("change", () => setDrawer(false));
 
 // ---------- dialogs, phone tabs, toasts ----------
 $("howBtn").onclick = () => $("howDialog").showModal();
